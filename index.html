@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style id="pageSizeStyle">@page{ size:58mm auto; margin:0; }</style>
 <style>
   :root{
@@ -148,6 +149,17 @@
   .btn-danger:hover{ filter:brightness(.95); }
   .btn-ghost{ background:transparent; color:var(--ink-soft); }
   .btn-ghost:hover{ background:var(--surface-alt); }
+  .btn svg{ width:16px; height:16px; flex-shrink:0; }
+  .btn-print{ background:#E3EDFB; color:#1D4ED8; }
+  .btn-print:hover{ background:#D2E1F7; }
+  .btn-share{ background:#F5E6FA; color:#9333EA; }
+  .btn-share:hover{ background:#EBD3F6; }
+  .btn-excel{ background:var(--accent-soft); color:var(--accent-strong); }
+  .btn-excel:hover{ background:#CBEBDA; }
+  .btn-edit{ background:#FBEBD8; color:#B45309; }
+  .btn-edit:hover{ background:#F7DDB9; }
+  .btn-circle{ width:42px; height:42px; padding:0; border-radius:50%; }
+  .btn-circle svg{ width:18px; height:18px; }
   .btn-block{ width:100%; }
   .btn[disabled]{ opacity:.5; cursor:not-allowed; }
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -161,9 +173,12 @@
   .paper-stage{ background:var(--surface-alt); border-radius:var(--radius); padding:22px 0; display:flex; justify-content:center; }
 
   .struk{
-    width:290px; background:#fff; padding:18px 16px 16px; font-family:var(--mono);
+    width:290px; font-family:var(--mono);
     box-shadow:0 2px 3px rgba(0,0,0,.05), 0 14px 26px -18px rgba(0,0,0,.45);
   }
+  .struk-inner{ padding:18px 16px 16px; background:#fff; }
+  .struk-tear{ display:block; width:100%; height:9px; }
+  .struk-tear-bottom{ transform:scaleY(-1); }
   .struk-toko{ font-weight:700; font-size:14.5px; text-align:center; text-transform:uppercase; letter-spacing:.02em; }
   .struk-sub{ font-size:11px; text-align:center; color:#444; margin-top:2px; }
   .struk-rule{ border-top:1px solid #000; margin:10px 0; }
@@ -188,6 +203,10 @@
   .chip.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
 
   .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); }
+  .pagination-bar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  .pagination-info{ font-size:12.5px; color:var(--muted); }
+  .pagination-controls{ display:flex; align-items:center; gap:10px; }
+  .pagination-page{ font-size:12.5px; font-weight:800; color:var(--label); white-space:nowrap; }
   table.tbl{ width:100%; border-collapse:collapse; min-width:640px; }
   .tbl thead th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--label); font-weight:800; background:var(--surface-alt); padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
   .tbl tbody td{ padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:middle; }
@@ -195,6 +214,11 @@
   .tbl tbody tr:hover{ background:var(--surface-alt); }
   .badge{ display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; background:var(--accent-soft); color:var(--accent-strong); }
   .tbl-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:6px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); flex-shrink:0; }
+  .icon-btn:hover{ background:var(--surface-alt); }
+  .icon-btn svg{ width:15px; height:15px; }
+  .icon-btn.icon-danger{ color:var(--danger); }
+  .icon-btn.icon-danger:hover{ background:var(--danger-soft); border-color:var(--danger-soft); }
   .tbl-actions button{ font-size:12px; padding:5px 9px; border-radius:6px; }
   .empty-state{ text-align:center; padding:40px 20px; color:var(--muted); }
 
@@ -343,7 +367,7 @@
     <div class="nav">
       <button class="nav-btn" data-tab="buat">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v17l-2.5-1.5L13 20l-2.5-1.5L8 20l-2-1.5V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
-        <span>Buat Struk</span>
+        <span>Kasir</span>
       </button>
       <button class="nav-btn" data-tab="riwayat">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
@@ -351,7 +375,7 @@
       </button>
       <button class="nav-btn" data-tab="rekap">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="20" x2="4" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="20" y1="20" x2="20" y2="14"/></svg>
-        <span>Rekap &amp; Laporan</span>
+        <span>Laporan</span>
       </button>
       <button class="nav-btn" data-tab="pengaturan">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
@@ -450,9 +474,10 @@
       <div class="col-preview preview-col">
         <div class="preview-status" id="previewStatus">✓ Struk tersimpan</div>
         <div class="preview-actions" id="previewActions">
-          <button class="btn btn-secondary" id="btnCetakDraft">Cetak</button>
-          <button class="btn btn-secondary" id="btnShareDraft">Bagikan JPG</button>
-          <button class="btn btn-primary" id="btnStrukBaru">+ Struk Baru</button>
+          <button class="btn btn-print" id="btnCetakDraft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Cetak</span></button>
+          <button class="btn btn-share" id="btnShareDraft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span>Bagikan JPG</span></button>
+          <button class="btn btn-excel" id="btnExcelDraft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Excel</span></button>
+          <button class="btn btn-primary" id="btnStrukBaru"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Struk Baru</span></button>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="paper-stage">
@@ -483,16 +508,26 @@
         </div>
         <button class="btn btn-secondary" id="btnResetFilterRiwayat">Reset Filter</button>
         <button class="btn btn-secondary" id="btnRefreshRiwayat" style="display:none;">🔄 Segarkan</button>
+        <button class="btn btn-primary" id="btnExportExcel">⬇ Unduh Excel</button>
+        <button class="btn btn-secondary" id="btnExportDetailItem">⬇ Detail Item</button>
       </div>
       <div class="table-wrap">
         <table class="tbl">
           <thead>
-            <tr><th>No. Struk</th><th>Tanggal</th><th>Pelanggan</th><th>Metode</th><th>Total</th><th>Aksi</th></tr>
+            <tr><th>No.</th><th>No. Struk</th><th>Tanggal</th><th>Pelanggan</th><th>Metode</th><th>Total</th><th>Aksi</th></tr>
           </thead>
           <tbody id="riwayatBody"></tbody>
         </table>
       </div>
       <div id="riwayatEmpty" class="empty-state" style="display:none;">Belum ada struk yang cocok dengan filter ini.</div>
+      <div id="riwayatPagination" class="pagination-bar" style="display:none;">
+        <span id="riwayatPageInfo" class="pagination-info"></span>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary" id="btnRiwayatPrev">&lsaquo; Sebelumnya</button>
+          <span id="riwayatPageLabel" class="pagination-page"></span>
+          <button class="btn btn-secondary" id="btnRiwayatNext">Berikutnya &rsaquo;</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -551,6 +586,16 @@
 
   <!-- ===================== PENGATURAN ===================== -->
   <section class="view" id="view-pengaturan">
+    <div class="card" id="cardAkun" style="display:none;">
+      <div class="card-title">Akun Saya</div>
+      <p class="card-sub">Nama ini yang ditampilkan di pojok kanan atas setelah login.</p>
+      <div class="field">
+        <label for="setNamaAdmin">Nama Tampilan</label>
+        <input type="text" id="setNamaAdmin" placeholder="Admin">
+      </div>
+      <button class="btn btn-primary" id="btnSimpanNamaAdmin">Simpan Nama</button>
+    </div>
+
     <div class="card">
       <div class="card-title">Pengaturan Toko</div>
       <p class="card-sub">Informasi ini akan muncul di bagian atas dan bawah setiap struk.</p>
@@ -587,6 +632,12 @@
       </div>
       <button class="btn btn-primary" id="btnSimpanPengaturan">Simpan Pengaturan</button>
     </div>
+
+    <div class="card">
+      <div class="card-title">Cadangan Data</div>
+      <p class="card-sub">Unduh salinan lengkap semua struk dan pengaturan toko (tidak terpengaruh filter apa pun) untuk disimpan sendiri, jaga-jaga kalau suatu saat diperlukan.</p>
+      <button class="btn btn-secondary" id="btnUnduhCadangan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Unduh Cadangan (JSON)</span></button>
+    </div>
   </section>
 
 </div>
@@ -606,10 +657,11 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="btnCetakModal">Cetak</button>
-      <button class="btn btn-secondary" id="btnShareModal">Bagikan JPG</button>
-      <button class="btn btn-ghost" id="btnEditModal">Ubah</button>
-      <button class="btn btn-danger" id="btnHapusModal">Hapus</button>
+      <button class="btn btn-print btn-circle" id="btnCetakModal" title="Cetak" aria-label="Cetak struk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+      <button class="btn btn-share btn-circle" id="btnShareModal" title="Bagikan JPG" aria-label="Bagikan struk sebagai JPG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+      <button class="btn btn-excel btn-circle" id="btnExcelModal" title="Unduh Excel" aria-label="Unduh struk sebagai Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+      <button class="btn btn-edit btn-circle" id="btnEditModal" title="Ubah" aria-label="Ubah struk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+      <button class="btn btn-danger btn-circle" id="btnHapusModal" title="Hapus" aria-label="Hapus struk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
     </div>
   </div>
 </div>
@@ -645,6 +697,8 @@
   var rekapDari = '';
   var rekapSampai = '';
   var modalReceiptId = null;
+  var riwayatPage = 1;
+  var RIWAYAT_PAGE_SIZE = 10;
   var currentUser = null;
   var sheetsSuspended = false;
 
@@ -661,6 +715,17 @@
   function formatRupiah(n){
     n = Math.round(Number(n) || 0);
     return 'Rp ' + n.toLocaleString('id-ID');
+  }
+  var ICON_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>';
+  var ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+  function getBtnLabel(btn){
+    var span = btn.querySelector('span');
+    return span ? span.textContent : null;
+  }
+  function setBtnLabel(btn, text){
+    var span = btn.querySelector('span');
+    if(span) span.textContent = text;
   }
   function todayISO(){
     var d = new Date();
@@ -1061,8 +1126,14 @@
         '<div class="struk-total-row"><span>Kembali</span><span>' + formatRupiah(d.kembalian) + '</span></div>'
       : '<div class="struk-total-row"><span>Metode</span><span>' + esc(d.metodeBayar) + '</span></div>';
 
+    var TEAR_PTS = '0.0,0 14.5,9 29.0,0 43.5,9 58.0,0 72.5,9 87.0,0 101.5,9 116.0,0 130.5,9 145.0,0 159.5,9 174.0,0 188.5,9 203.0,0 217.5,9 232.0,0 246.5,9 261.0,0 275.5,9 290.0,0 290,9 0,9';
+    var tearTop = '<svg class="struk-tear struk-tear-top" viewBox="0 0 290 9" preserveAspectRatio="none" aria-hidden="true"><polygon points="' + TEAR_PTS + '" fill="#fff"/></svg>';
+    var tearBottom = '<svg class="struk-tear struk-tear-bottom" viewBox="0 0 290 9" preserveAspectRatio="none" aria-hidden="true"><polygon points="' + TEAR_PTS + '" fill="#fff"/></svg>';
+
     return '' +
     '<div class="struk">' +
+      tearTop +
+      '<div class="struk-inner">' +
       '<div class="struk-toko">' + esc(state.settings.namaToko || 'Toko Saya') + '</div>' +
       (state.settings.alamat ? '<div class="struk-sub">' + esc(state.settings.alamat) + '</div>' : '') +
       (state.settings.telepon ? '<div class="struk-sub">' + esc(state.settings.telepon) + '</div>' : '') +
@@ -1087,6 +1158,8 @@
       (d.catatan ? '<div class="struk-rule dashed"></div><div class="struk-catatan">' + esc(d.catatan) + '</div>' : '') +
       '<div class="struk-rule dashed"></div>' +
       '<div class="struk-footer">' + esc(state.settings.footer || 'Terima kasih') + '</div>' +
+      '</div>' +
+      tearBottom +
     '</div>';
   }
 
@@ -1301,26 +1374,43 @@
     var list = filteredReceipts();
     var body = document.getElementById('riwayatBody');
     var empty = document.getElementById('riwayatEmpty');
+    var pagBar = document.getElementById('riwayatPagination');
     if(!list.length){
       body.innerHTML = '';
       empty.style.display = '';
+      pagBar.style.display = 'none';
       return;
     }
     empty.style.display = 'none';
-    body.innerHTML = list.map(function(r){
+
+    var totalPages = Math.max(1, Math.ceil(list.length / RIWAYAT_PAGE_SIZE));
+    if(riwayatPage > totalPages) riwayatPage = totalPages;
+    if(riwayatPage < 1) riwayatPage = 1;
+    var startIdx = (riwayatPage - 1) * RIWAYAT_PAGE_SIZE;
+    var pageItems = list.slice(startIdx, startIdx + RIWAYAT_PAGE_SIZE);
+
+    body.innerHTML = pageItems.map(function(r, idx){
       return '<tr>' +
+        '<td>' + (startIdx + idx + 1) + '</td>' +
         '<td>' + esc(r.nomor) + '</td>' +
         '<td>' + esc(r.tanggalTampil || r.tanggal) + '</td>' +
         '<td>' + esc(r.namaPelanggan || '-') + '</td>' +
         '<td><span class="badge">' + esc(r.metodeBayar) + '</span></td>' +
         '<td>' + formatRupiah(r.total) + '</td>' +
         '<td><div class="tbl-actions">' +
-          '<button class="btn btn-secondary" onclick="App.lihatStruk(\'' + r.id + '\')">Lihat</button>' +
-          '<button class="btn btn-ghost" onclick="App.editStruk(\'' + r.id + '\')">Ubah</button>' +
-          '<button class="btn btn-danger" onclick="App.hapusStruk(\'' + r.id + '\')">Hapus</button>' +
+          '<button class="icon-btn" title="Lihat" aria-label="Lihat struk ' + esc(r.nomor) + '" onclick="App.lihatStruk(\'' + r.id + '\')">' + ICON_EYE + '</button>' +
+          '<button class="icon-btn" title="Ubah" aria-label="Ubah struk ' + esc(r.nomor) + '" onclick="App.editStruk(\'' + r.id + '\')">' + ICON_EDIT + '</button>' +
+          '<button class="icon-btn icon-danger" title="Hapus" aria-label="Hapus struk ' + esc(r.nomor) + '" onclick="App.hapusStruk(\'' + r.id + '\')">' + ICON_TRASH + '</button>' +
         '</div></td>' +
       '</tr>';
     }).join('');
+
+    pagBar.style.display = 'flex';
+    document.getElementById('riwayatPageInfo').textContent =
+      'Menampilkan ' + (startIdx + 1) + '\u2013' + Math.min(startIdx + RIWAYAT_PAGE_SIZE, list.length) + ' dari ' + list.length + ' struk';
+    document.getElementById('riwayatPageLabel').textContent = 'Halaman ' + riwayatPage + ' / ' + totalPages;
+    document.getElementById('btnRiwayatPrev').disabled = riwayatPage <= 1;
+    document.getElementById('btnRiwayatNext').disabled = riwayatPage >= totalPages;
   }
 
   /* ---------------- modal lihat ---------------- */
@@ -1441,6 +1531,35 @@
     document.getElementById('setFooter').value = state.settings.footer || '';
     document.getElementById('setLebarKertas').value = state.settings.lebarKertas || '58mm';
     document.getElementById('brandTitle').textContent = state.settings.namaToko || 'Kasir Struk';
+    var cardAkun = document.getElementById('cardAkun');
+    if(currentUser && sheetsEnabled()){
+      cardAkun.style.display = '';
+      document.getElementById('setNamaAdmin').value = currentUser.namaTampilan || currentUser.username || '';
+    } else {
+      cardAkun.style.display = 'none';
+    }
+  }
+  function simpanNamaAdmin(){
+    if(!currentUser || !sheetsEnabled()) return;
+    var namaBaru = document.getElementById('setNamaAdmin').value.trim();
+    if(!namaBaru){ showToast('Nama tidak boleh kosong', true); return; }
+    var btn = document.getElementById('btnSimpanNamaAdmin');
+    var originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+    sheetsPost('updateProfile', { data: { username: currentUser.username, namaTampilan: namaBaru } }).then(function(res){
+      currentUser.namaTampilan = (res && res.namaTampilan) || namaBaru;
+      document.getElementById('loggedUserLabel').textContent = currentUser.namaTampilan;
+      return storageSet('session', JSON.stringify({ loggedIn: true, username: currentUser.username, namaTampilan: currentUser.namaTampilan }));
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      showToast('Nama berhasil diperbarui');
+    }).catch(function(err){
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      showToast('Gagal menyimpan nama (' + (err.message || err) + ')', true);
+    });
   }
   function simpanPengaturan(){
     sheetsSuspended = false;
@@ -1499,7 +1618,7 @@
     var area = document.getElementById('printArea');
     area.innerHTML = renderStrukHTML(data);
     var target = area.firstChild;
-    html2canvas(target, { backgroundColor: '#ffffff', scale: 2 }).then(function(canvas){
+    html2canvas(target, { backgroundColor: '#F2F8F4', scale: 2 }).then(function(canvas){
       canvas.toBlob(function(blob){
         if(!blob){ showToast('Gagal membuat gambar struk', true); return; }
         var filename = 'struk-' + (filenameHint || 'draft').replace(/[^a-zA-Z0-9-_]/g, '') + '.jpg';
@@ -1517,13 +1636,13 @@
       showToast('Gagal membuat gambar struk', true);
     });
   }
-  function downloadBlob(blob, filename){
+  function downloadBlob(blob, filename, toastMsg){
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-    showToast('Gambar struk diunduh');
+    showToast(toastMsg || 'Gambar struk diunduh');
   }
   function shareDraft(){
     var d = buildStrukData();
@@ -1532,6 +1651,414 @@
   function shareById(id){
     var r = state.receipts.find(function(x){ return x.id === id; });
     if(r) bagikanJPG(receiptForDisplay(r), r.nomor);
+  }
+
+  function exportStrukExcel(data, btn){
+    if(typeof ExcelJS === 'undefined'){
+      showToast('Fitur unduh Excel belum siap, coba muat ulang halaman', true);
+      return;
+    }
+    var originalLabel = btn ? getBtnLabel(btn) : null;
+    if(btn){ btn.disabled = true; setBtnLabel(btn, 'Menyiapkan...'); }
+
+    var HDR_FILL = 'FF0E6338';
+    var HDR_FONT = 'FFFFFFFF';
+    var LINE_CLR = 'FFB9CCC0';
+    var LABEL_CLR = 'FF0E4B2B';
+    var MUTED_CLR = 'FF767F76';
+    var thinBorder = {
+      top: { style: 'thin', color: { argb: LINE_CLR } },
+      left: { style: 'thin', color: { argb: LINE_CLR } },
+      bottom: { style: 'thin', color: { argb: LINE_CLR } },
+      right: { style: 'thin', color: { argb: LINE_CLR } }
+    };
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = state.settings.namaToko || 'Kasir Struk';
+    var ws = wb.addWorksheet('Nota');
+    ws.getColumn(1).width = 20;
+    ws.getColumn(2).width = 10;
+    ws.getColumn(3).width = 16;
+    ws.getColumn(4).width = 16;
+
+    var row = 1;
+    function mergedText(text, opts){
+      opts = opts || {};
+      ws.mergeCells('A' + row + ':D' + row);
+      var c = ws.getCell('A' + row);
+      c.value = text;
+      c.font = { name: 'Arial', size: opts.size || 10, bold: !!opts.bold, italic: !!opts.italic, color: { argb: opts.color || 'FF14181C' } };
+      if(opts.center) c.alignment = { horizontal: 'center' };
+      row++;
+    }
+    function labelValue(label, value){
+      var lc = ws.getCell('A' + row);
+      lc.value = label;
+      lc.font = { name: 'Arial', bold: true, size: 10, color: { argb: LABEL_CLR } };
+      ws.mergeCells('B' + row + ':D' + row);
+      var vc = ws.getCell('B' + row);
+      vc.value = value || '-';
+      vc.font = { name: 'Arial', size: 10 };
+      row++;
+    }
+    function totalLine(label, value, bold){
+      ws.mergeCells('A' + row + ':C' + row);
+      var lc = ws.getCell('A' + row);
+      lc.value = label;
+      lc.font = { name: 'Arial', bold: !!bold, size: bold ? 12 : 10, color: { argb: LABEL_CLR } };
+      lc.alignment = { horizontal: 'right' };
+      var vc = ws.getCell('D' + row);
+      vc.value = value;
+      vc.numFmt = '#,##0';
+      vc.font = { name: 'Arial', bold: !!bold, size: bold ? 12 : 10 };
+      vc.alignment = { horizontal: 'right' };
+      if(bold){
+        [lc, vc].forEach(function(c){ c.border = { top: { style: 'thin', color: { argb: LABEL_CLR } } }; });
+      }
+      row++;
+    }
+
+    mergedText(state.settings.namaToko || 'Toko Saya', { bold: true, size: 14, color: LABEL_CLR });
+    if(state.settings.alamat) mergedText(state.settings.alamat, { color: MUTED_CLR });
+    if(state.settings.telepon) mergedText(state.settings.telepon, { color: MUTED_CLR });
+    row++;
+
+    labelValue('No. Struk', data.nomor);
+    labelValue('Tanggal', data.tanggal);
+    labelValue('Waktu', data.waktu);
+    labelValue('Kasir', state.settings.namaKasir || '-');
+    labelValue('Pelanggan', data.namaPelanggan || '-');
+    labelValue('Metode Bayar', data.metodeBayar);
+    row++;
+
+    ['Nama Barang', 'Qty', 'Harga Satuan', 'Subtotal'].forEach(function(h, i){
+      var cell = ws.getCell(row, i + 1);
+      cell.value = h;
+      cell.font = { name: 'Arial', bold: true, color: { argb: HDR_FONT } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HDR_FILL } };
+      cell.border = thinBorder;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+    row++;
+
+    (data.items || []).forEach(function(it){
+      var vals = [it.nama, it.qty, it.harga, it.qty * it.harga];
+      vals.forEach(function(v, i){
+        var cell = ws.getCell(row, i + 1);
+        cell.value = v;
+        cell.font = { name: 'Arial', size: 10 };
+        cell.border = thinBorder;
+        if(i === 1){ cell.numFmt = '0.##'; cell.alignment = { horizontal: 'right' }; }
+        if(i === 2 || i === 3){ cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right' }; }
+      });
+      row++;
+    });
+    row++;
+
+    totalLine('Subtotal', data.subtotal || 0, false);
+    if(data.diskon) totalLine('Diskon', -(data.diskon || 0), false);
+    if(data.ppn) totalLine('PPN', data.ppn || 0, false);
+    if(data.pph) totalLine('PPh', data.pph || 0, false);
+    totalLine('TOTAL', data.total || 0, true);
+    if(data.metodeBayar === 'Tunai'){
+      totalLine('Tunai', data.uangDibayar || 0, false);
+      totalLine('Kembali', data.kembalian || 0, false);
+    }
+
+    if(data.catatan){
+      row++;
+      mergedText('Catatan: ' + data.catatan, { italic: true, size: 9, color: MUTED_CLR });
+    }
+    row++;
+    mergedText(state.settings.footer || 'Terima kasih', { italic: true, size: 9, color: MUTED_CLR, center: true });
+
+    wb.xlsx.writeBuffer().then(function(buffer){
+      var blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      var fname = 'nota-' + String(data.nomor || 'draft').replace(/[^a-zA-Z0-9-_]/g, '') + '.xlsx';
+      downloadBlob(blob, fname, 'Excel nota berhasil diunduh');
+      if(btn){ btn.disabled = false; setBtnLabel(btn, originalLabel); }
+    }).catch(function(err){
+      if(btn){ btn.disabled = false; setBtnLabel(btn, originalLabel); }
+      showToast('Gagal membuat file Excel (' + (err.message || err) + ')', true);
+    });
+  }
+  function exportExcelDraft(){
+    exportStrukExcel(buildStrukData(), document.getElementById('btnExcelDraft'));
+  }
+  function exportExcelById(id){
+    var r = state.receipts.find(function(x){ return x.id === id; });
+    if(r) exportStrukExcel(receiptForDisplay(r), document.getElementById('btnExcelModal'));
+  }
+
+  function exportRiwayatExcel(){
+    if(typeof ExcelJS === 'undefined'){
+      showToast('Fitur unduh Excel belum siap, coba muat ulang halaman', true);
+      return;
+    }
+    var list = filteredReceipts();
+    if(!list.length){ showToast('Tidak ada struk untuk diunduh pada filter ini', true); return; }
+
+    var btn = document.getElementById('btnExportExcel');
+    var originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Menyiapkan...';
+
+    var HDR_FILL = 'FF0E6338';
+    var HDR_FONT = 'FFFFFFFF';
+    var LINE_CLR = 'FFB9CCC0';
+    var LABEL_CLR = 'FF0E4B2B';
+    var TOTAL_FILL = 'FFDCF3E4';
+    var thinBorder = {
+      top: { style: 'thin', color: { argb: LINE_CLR } },
+      left: { style: 'thin', color: { argb: LINE_CLR } },
+      bottom: { style: 'thin', color: { argb: LINE_CLR } },
+      right: { style: 'thin', color: { argb: LINE_CLR } }
+    };
+
+    var columns = [
+      { header: 'No.', width: 6 },
+      { header: 'No. Struk', width: 16 },
+      { header: 'Tanggal', width: 13 },
+      { header: 'Waktu', width: 9 },
+      { header: 'Pelanggan', width: 22 },
+      { header: 'Metode', width: 12 },
+      { header: 'Subtotal', width: 14 },
+      { header: 'Diskon', width: 12 },
+      { header: 'PPN', width: 12 },
+      { header: 'PPh', width: 12 },
+      { header: 'Total', width: 14 },
+      { header: 'Uang Dibayar', width: 14 },
+      { header: 'Kembalian', width: 13 },
+      { header: 'Catatan', width: 26 }
+    ];
+    var numericCols = [7, 8, 9, 10, 11, 12, 13];
+    var sumColLetters = ['G', 'H', 'I', 'J', 'K', 'L', 'M'];
+    var colCount = columns.length;
+    var endColLetter = String.fromCharCode(64 + colCount);
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = state.settings.namaToko || 'Kasir Struk';
+    var ws = wb.addWorksheet('Riwayat Struk');
+    columns.forEach(function(c, i){ ws.getColumn(i + 1).width = c.width; });
+
+    var dari = document.getElementById('riDari').value;
+    var sampai = document.getElementById('riSampai').value;
+    var judul = 'Riwayat Struk - ' + (state.settings.namaToko || 'Toko Saya');
+    if(dari || sampai) judul += ' (' + (dari || '...') + ' s/d ' + (sampai || '...') + ')';
+
+    ws.mergeCells('A1:' + endColLetter + '1');
+    var titleCell = ws.getCell('A1');
+    titleCell.value = judul;
+    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: LABEL_CLR } };
+    ws.getRow(1).height = 22;
+
+    ws.addRow([]);
+
+    var headerRow = ws.addRow(columns.map(function(c){ return c.header; }));
+    headerRow.eachCell(function(cell){
+      cell.font = { name: 'Arial', bold: true, color: { argb: HDR_FONT } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HDR_FILL } };
+      cell.border = thinBorder;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    var firstDataRow = headerRow.number + 1;
+    list.forEach(function(r, idx){
+      var row = ws.addRow([
+        idx + 1, r.nomor, r.tanggalTampil || r.tanggal, r.waktu, r.namaPelanggan || '-', r.metodeBayar,
+        r.subtotal || 0, r.diskon || 0, r.ppn || 0, r.pph || 0, r.total || 0,
+        r.uangDibayar || 0, (r.kembalian === null || r.kembalian === undefined) ? '' : r.kembalian, r.catatan || ''
+      ]);
+      row.eachCell(function(cell, colNumber){
+        cell.font = { name: 'Arial', size: 10 };
+        cell.border = thinBorder;
+        if(colNumber === 1){
+          cell.alignment = { horizontal: 'center' };
+        } else if(numericCols.indexOf(colNumber) !== -1){
+          cell.numFmt = '#,##0';
+          cell.alignment = { horizontal: 'right' };
+        }
+      });
+    });
+    var lastDataRow = firstDataRow + list.length - 1;
+
+    var totalRow = ws.addRow([]);
+    var totalRowNum = totalRow.number;
+    ws.mergeCells('A' + totalRowNum + ':F' + totalRowNum);
+    var totalLabelCell = ws.getCell('A' + totalRowNum);
+    totalLabelCell.value = 'TOTAL';
+    totalLabelCell.alignment = { horizontal: 'right', vertical: 'middle' };
+    for(var tc = 1; tc <= colCount; tc++){
+      var tCell = ws.getCell(totalRowNum, tc);
+      tCell.font = { name: 'Arial', bold: true, color: { argb: LABEL_CLR } };
+      tCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_FILL } };
+      tCell.border = thinBorder;
+    }
+    sumColLetters.forEach(function(colLetter){
+      var cell = ws.getCell(colLetter + totalRowNum);
+      cell.value = { formula: 'SUM(' + colLetter + firstDataRow + ':' + colLetter + lastDataRow + ')' };
+      cell.numFmt = '#,##0';
+      cell.alignment = { horizontal: 'right' };
+    });
+
+    wb.xlsx.writeBuffer().then(function(buffer){
+      var blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      downloadBlob(blob, 'riwayat-struk-' + todayISO() + '.xlsx', 'Excel riwayat struk berhasil diunduh');
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }).catch(function(err){
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      showToast('Gagal membuat file Excel (' + (err.message || err) + ')', true);
+    });
+  }
+
+  function unduhCadangan(){
+    var btn = document.getElementById('btnUnduhCadangan');
+    var originalLabel = getBtnLabel(btn);
+    btn.disabled = true;
+    setBtnLabel(btn, 'Menyiapkan...');
+    try{
+      var backup = {
+        aplikasi: 'Kasir Struk',
+        dibuatPada: new Date().toISOString(),
+        sumberData: sheetsEnabled() ? 'Google Sheets' : 'Lokal',
+        jumlahStruk: state.receipts.length,
+        settings: state.settings,
+        receipts: state.receipts
+      };
+      var json = JSON.stringify(backup, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      downloadBlob(blob, 'cadangan-kasir-struk-' + todayISO() + '.json', 'Cadangan berhasil diunduh (' + state.receipts.length + ' struk)');
+    }catch(err){
+      showToast('Gagal membuat cadangan (' + (err.message || err) + ')', true);
+    }
+    btn.disabled = false;
+    setBtnLabel(btn, originalLabel);
+  }
+
+  function exportDetailItemExcel(){
+    if(typeof ExcelJS === 'undefined'){
+      showToast('Fitur unduh Excel belum siap, coba muat ulang halaman', true);
+      return;
+    }
+    var list = filteredReceipts();
+    if(!list.length){ showToast('Tidak ada struk untuk diunduh pada filter ini', true); return; }
+
+    var btn = document.getElementById('btnExportDetailItem');
+    var originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Menyiapkan...';
+
+    var HDR_FILL = 'FF0E6338';
+    var HDR_FONT = 'FFFFFFFF';
+    var LINE_CLR = 'FFB9CCC0';
+    var LABEL_CLR = 'FF0E4B2B';
+    var TOTAL_FILL = 'FFDCF3E4';
+    var thinBorder = {
+      top: { style: 'thin', color: { argb: LINE_CLR } },
+      left: { style: 'thin', color: { argb: LINE_CLR } },
+      bottom: { style: 'thin', color: { argb: LINE_CLR } },
+      right: { style: 'thin', color: { argb: LINE_CLR } }
+    };
+
+    var columns = [
+      { header: 'No.', width: 6 },
+      { header: 'No. Struk', width: 16 },
+      { header: 'Tanggal', width: 13 },
+      { header: 'Waktu', width: 9 },
+      { header: 'Pelanggan', width: 22 },
+      { header: 'Metode', width: 12 },
+      { header: 'Nama Barang', width: 24 },
+      { header: 'Qty', width: 9 },
+      { header: 'Harga Satuan', width: 14 },
+      { header: 'Subtotal Item', width: 15 }
+    ];
+    var colCount = columns.length;
+    var endColLetter = String.fromCharCode(64 + colCount);
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = state.settings.namaToko || 'Kasir Struk';
+    var ws = wb.addWorksheet('Detail Item Struk');
+    columns.forEach(function(c, i){ ws.getColumn(i + 1).width = c.width; });
+
+    var dari = document.getElementById('riDari').value;
+    var sampai = document.getElementById('riSampai').value;
+    var judul = 'Detail Item Struk - ' + (state.settings.namaToko || 'Toko Saya');
+    if(dari || sampai) judul += ' (' + (dari || '...') + ' s/d ' + (sampai || '...') + ')';
+
+    ws.mergeCells('A1:' + endColLetter + '1');
+    var titleCell = ws.getCell('A1');
+    titleCell.value = judul;
+    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: LABEL_CLR } };
+    ws.getRow(1).height = 22;
+
+    ws.addRow([]);
+
+    var headerRow = ws.addRow(columns.map(function(c){ return c.header; }));
+    headerRow.eachCell(function(cell){
+      cell.font = { name: 'Arial', bold: true, color: { argb: HDR_FONT } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HDR_FILL } };
+      cell.border = thinBorder;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    var firstDataRow = headerRow.number + 1;
+    var no = 1;
+    list.forEach(function(r){
+      (r.items || []).forEach(function(it){
+        var row = ws.addRow([
+          no, r.nomor, r.tanggalTampil || r.tanggal, r.waktu, r.namaPelanggan || '-', r.metodeBayar,
+          it.nama, it.qty, it.harga, it.qty * it.harga
+        ]);
+        row.eachCell(function(cell, colNumber){
+          cell.font = { name: 'Arial', size: 10 };
+          cell.border = thinBorder;
+          if(colNumber === 1){
+            cell.alignment = { horizontal: 'center' };
+          } else if(colNumber === 8 || colNumber === 9 || colNumber === 10){
+            cell.numFmt = '#,##0';
+            cell.alignment = { horizontal: 'right' };
+          }
+        });
+        no++;
+      });
+    });
+    var lastDataRow = firstDataRow + no - 2;
+
+    var totalRow = ws.addRow([]);
+    var totalRowNum = totalRow.number;
+    ws.mergeCells('A' + totalRowNum + ':I' + totalRowNum);
+    var totalLabelCell = ws.getCell('A' + totalRowNum);
+    totalLabelCell.value = 'TOTAL';
+    totalLabelCell.alignment = { horizontal: 'right', vertical: 'middle' };
+    for(var tc = 1; tc <= colCount; tc++){
+      var tCell = ws.getCell(totalRowNum, tc);
+      tCell.font = { name: 'Arial', bold: true, color: { argb: LABEL_CLR } };
+      tCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_FILL } };
+      tCell.border = thinBorder;
+    }
+    var sumCell = ws.getCell('J' + totalRowNum);
+    sumCell.value = { formula: 'SUM(J' + firstDataRow + ':J' + lastDataRow + ')' };
+    sumCell.numFmt = '#,##0';
+    sumCell.alignment = { horizontal: 'right' };
+
+    var noteRow = ws.addRow([]);
+    ws.mergeCells('A' + noteRow.number + ':' + endColLetter + noteRow.number);
+    var noteCell = ws.getCell('A' + noteRow.number);
+    noteCell.value = 'Catatan: setiap baris = satu item barang. Info struk (No., Tanggal, Pelanggan, dst.) diulang untuk tiap item pada struk yang sama.';
+    noteCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF767F76' } };
+
+    wb.xlsx.writeBuffer().then(function(buffer){
+      var blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      downloadBlob(blob, 'detail-item-struk-' + todayISO() + '.xlsx', 'Excel detail item berhasil diunduh');
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }).catch(function(err){
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      showToast('Gagal membuat file Excel (' + (err.message || err) + ')', true);
+    });
   }
 
   /* ---------------- master render ---------------- */
@@ -1567,17 +2094,23 @@
     document.getElementById('btnStrukBaru').addEventListener('click', mulaiStrukBaru);
     document.getElementById('btnCetakDraft').addEventListener('click', cetakDraft);
     document.getElementById('btnShareDraft').addEventListener('click', shareDraft);
+    document.getElementById('btnExcelDraft').addEventListener('click', exportExcelDraft);
 
-    document.getElementById('riCari').addEventListener('input', renderRiwayat);
-    document.getElementById('riDari').addEventListener('change', renderRiwayat);
-    document.getElementById('riSampai').addEventListener('change', renderRiwayat);
+    document.getElementById('riCari').addEventListener('input', function(){ riwayatPage = 1; renderRiwayat(); });
+    document.getElementById('riDari').addEventListener('change', function(){ riwayatPage = 1; renderRiwayat(); });
+    document.getElementById('riSampai').addEventListener('change', function(){ riwayatPage = 1; renderRiwayat(); });
     document.getElementById('btnResetFilterRiwayat').addEventListener('click', function(){
       document.getElementById('riCari').value = '';
       document.getElementById('riDari').value = '';
       document.getElementById('riSampai').value = '';
+      riwayatPage = 1;
       renderRiwayat();
     });
-    document.getElementById('btnRefreshRiwayat').addEventListener('click', refreshFromSheets);
+    document.getElementById('btnRefreshRiwayat').addEventListener('click', function(){ riwayatPage = 1; refreshFromSheets(); });
+    document.getElementById('btnExportExcel').addEventListener('click', exportRiwayatExcel);
+    document.getElementById('btnExportDetailItem').addEventListener('click', exportDetailItemExcel);
+    document.getElementById('btnRiwayatPrev').addEventListener('click', function(){ riwayatPage--; renderRiwayat(); });
+    document.getElementById('btnRiwayatNext').addEventListener('click', function(){ riwayatPage++; renderRiwayat(); });
 
     document.querySelectorAll('#rangeChips .chip').forEach(function(c){
       c.addEventListener('click', function(){ applyQuickRange(c.getAttribute('data-range')); });
@@ -1589,6 +2122,8 @@
     document.getElementById('btnRefreshRekap').addEventListener('click', refreshFromSheets);
 
     document.getElementById('btnSimpanPengaturan').addEventListener('click', simpanPengaturan);
+    document.getElementById('btnSimpanNamaAdmin').addEventListener('click', simpanNamaAdmin);
+    document.getElementById('btnUnduhCadangan').addEventListener('click', unduhCadangan);
 
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
     document.getElementById('modalOverlay').addEventListener('click', function(e){
@@ -1596,6 +2131,7 @@
     });
     document.getElementById('btnCetakModal').addEventListener('click', function(){ if(modalReceiptId) cetakById(modalReceiptId); });
     document.getElementById('btnShareModal').addEventListener('click', function(){ if(modalReceiptId) shareById(modalReceiptId); });
+    document.getElementById('btnExcelModal').addEventListener('click', function(){ if(modalReceiptId) exportExcelById(modalReceiptId); });
     document.getElementById('btnEditModal').addEventListener('click', function(){ if(modalReceiptId) editStruk(modalReceiptId); });
     document.getElementById('btnHapusModal').addEventListener('click', function(){ if(modalReceiptId) hapusStruk(modalReceiptId); });
 
