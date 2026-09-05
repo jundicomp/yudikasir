@@ -179,6 +179,7 @@
   .struk-inner{ padding:18px 16px 16px; background:#fff; }
   .struk-tear{ display:block; width:100%; height:9px; }
   .struk-tear-bottom{ transform:scaleY(-1); }
+  .struk-logo{ display:block; max-width:70px; max-height:70px; margin:0 auto 6px; object-fit:contain; }
   .struk-toko{ font-weight:700; font-size:14.5px; text-align:center; text-transform:uppercase; letter-spacing:.02em; }
   .struk-sub{ font-size:11px; text-align:center; color:#444; margin-top:2px; }
   .struk-rule{ border-top:1px solid #000; margin:10px 0; }
@@ -286,6 +287,18 @@
   #loginForm{ width:100%; }
 
   #printArea{ position:fixed; top:0; left:-10000px; background:#fff; }
+  .save-loading-overlay{
+    position:fixed; inset:0; z-index:250;
+    background:rgba(20,24,20,.4);
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .save-loading-box{
+    background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:32px 42px; display:flex; flex-direction:column; align-items:center; gap:12px;
+  }
+  .save-loading-text{ font-size:13.5px; font-weight:700; color:var(--label); }
+  .save-loading-percent{ font-family:var(--mono); font-size:24px; font-weight:700; color:var(--accent-strong); }
 
   @media print{
     body *{ visibility:hidden; }
@@ -414,6 +427,17 @@
                 <option value="QRIS">QRIS</option>
                 <option value="Kartu">Kartu Debit/Kredit</option>
               </select>
+            </div>
+          </div>
+
+          <div class="row-2">
+            <div class="field">
+              <label for="inpTanggal">Tanggal Transaksi</label>
+              <input type="date" id="inpTanggal">
+            </div>
+            <div class="field">
+              <label for="inpWaktu">Jam Transaksi</label>
+              <input type="time" id="inpWaktu">
             </div>
           </div>
 
@@ -599,6 +623,14 @@
     <div class="card">
       <div class="card-title">Pengaturan Toko</div>
       <p class="card-sub">Informasi ini akan muncul di bagian atas dan bawah setiap struk.</p>
+      <div class="field">
+        <label for="inputLogo">Logo Toko (opsional)</label>
+        <input type="file" accept="image/*" id="inputLogo">
+        <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+          <img id="logoPreview" src="" alt="Logo toko" style="display:none; width:48px; height:48px; object-fit:contain; border:1px solid var(--line); border-radius:6px; background:#fff; padding:2px;">
+          <button type="button" class="btn btn-ghost" id="btnHapusLogo" style="display:none;">Hapus Logo</button>
+        </div>
+      </div>
       <div class="row-2">
         <div class="field">
           <label for="setNamaToko">Nama Toko</label>
@@ -666,6 +698,14 @@
   </div>
 </div>
 
+<div id="saveLoadingOverlay" class="save-loading-overlay" style="display:none;">
+  <div class="save-loading-box">
+    <div class="spinner"></div>
+    <div class="save-loading-text">Menyimpan struk...</div>
+    <div class="save-loading-percent" id="saveLoadingPercent">0%</div>
+  </div>
+</div>
+
 <div id="printArea"></div>
 <div id="toast" class="toast"></div>
 
@@ -683,7 +723,8 @@
       footer: 'Terima kasih atas kunjungan Anda',
       lebarKertas: '58mm',
       counter: 0,
-      sheetsUrl: ''
+      sheetsUrl: 'https://script.google.com/macros/s/AKfycby_h37_9r9zZ-rXZu99lGqhmPQmeYlPaMqjA5GOVx1SzOtA7MSFLRMSygwAJviC36xl/exec',
+      logoDataUrl: ''
     },
     receipts: []
   };
@@ -733,6 +774,15 @@
   }
   function dateISOFrom(d){
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function formatTanggalTampil(isoStr){
+    var d = new Date(isoStr + 'T00:00:00');
+    if(isNaN(d.getTime())) d = new Date();
+    return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function nowTimeHHMM(){
+    var d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
   var toastTimer = null;
   function showToast(msg, isError){
@@ -1095,10 +1145,11 @@
     var metode = document.getElementById('inpMetode').value;
     var uangDibayar = Number(document.getElementById('inpUangDibayar').value) || 0;
     var existingNomor = editingId ? (state.receipts.find(function(r){ return r.id === editingId; }) || {}).nomor : null;
+    var tanggalISO = document.getElementById('inpTanggal').value || dateISOFrom(now);
     return {
       nomor: existingNomor || '(belum disimpan)',
-      tanggal: now.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }),
-      waktu: now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }),
+      tanggal: formatTanggalTampil(tanggalISO),
+      waktu: document.getElementById('inpWaktu').value || nowTimeHHMM(),
       namaPelanggan: document.getElementById('inpPelanggan').value.trim(),
       metodeBayar: metode,
       items: currentItems,
@@ -1134,6 +1185,7 @@
     '<div class="struk">' +
       tearTop +
       '<div class="struk-inner">' +
+      (state.settings.logoDataUrl ? '<img class="struk-logo" src="' + state.settings.logoDataUrl + '" alt="Logo">' : '') +
       '<div class="struk-toko">' + esc(state.settings.namaToko || 'Toko Saya') + '</div>' +
       (state.settings.alamat ? '<div class="struk-sub">' + esc(state.settings.alamat) + '</div>' : '') +
       (state.settings.telepon ? '<div class="struk-sub">' + esc(state.settings.telepon) + '</div>' : '') +
@@ -1177,6 +1229,8 @@
     lastSavedId = null;
     document.getElementById('inpPelanggan').value = '';
     document.getElementById('inpMetode').value = 'Tunai';
+    document.getElementById('inpTanggal').value = todayISO();
+    document.getElementById('inpWaktu').value = nowTimeHHMM();
     document.getElementById('inpDiskon').value = '0';
     document.getElementById('chkPph').checked = false;
     document.getElementById('inpPph').value = '0';
@@ -1200,13 +1254,16 @@
   }
 
   function buildLocalReceiptRecord(payload){
+    var tanggalISO = payload.tanggalISO || todayISO();
+    var waktu = payload.waktu || nowTimeHHMM();
     if(payload.id){
       var existing = state.receipts.find(function(r){ return r.id === payload.id; });
       var base = existing ? Object.assign({}, existing) : { id: payload.id };
       return Object.assign(base, {
         namaPelanggan: payload.namaPelanggan, metodeBayar: payload.metodeBayar, items: payload.items,
         diskon: payload.diskon, ppn: payload.ppn, pph: payload.pph, catatan: payload.catatan, uangDibayar: payload.uangDibayar,
-        subtotal: payload.subtotal, total: payload.total, kembalian: payload.kembalian
+        subtotal: payload.subtotal, total: payload.total, kembalian: payload.kembalian,
+        tanggal: tanggalISO, tanggalTampil: formatTanggalTampil(tanggalISO), waktu: waktu
       });
     }
     state.settings.counter = (state.settings.counter || 0) + 1;
@@ -1214,9 +1271,9 @@
     return {
       id: uid(),
       nomor: 'TRX-' + String(state.settings.counter).padStart(6, '0'),
-      tanggal: dateISOFrom(now),
-      tanggalTampil: now.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }),
-      waktu: now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }),
+      tanggal: tanggalISO,
+      tanggalTampil: formatTanggalTampil(tanggalISO),
+      waktu: waktu,
       timestamp: now.toISOString(),
       namaPelanggan: payload.namaPelanggan, metodeBayar: payload.metodeBayar, items: payload.items,
       diskon: payload.diskon, ppn: payload.ppn, pph: payload.pph, catatan: payload.catatan, uangDibayar: payload.uangDibayar,
@@ -1226,6 +1283,28 @@
   function saveReceiptRecord(payload){
     if(sheetsEnabled()) return sheetsPost('save', { data: payload });
     return Promise.resolve(buildLocalReceiptRecord(payload));
+  }
+
+  var saveLoadingInterval = null;
+  function showSaveLoading(){
+    var overlay = document.getElementById('saveLoadingOverlay');
+    var percentEl = document.getElementById('saveLoadingPercent');
+    var pct = 0;
+    percentEl.textContent = '0%';
+    overlay.style.display = 'flex';
+    clearInterval(saveLoadingInterval);
+    saveLoadingInterval = setInterval(function(){
+      var increment = pct < 60 ? 7 : (pct < 85 ? 3 : 1);
+      pct = Math.min(90, pct + increment);
+      percentEl.textContent = pct + '%';
+    }, 120);
+  }
+  function hideSaveLoading(){
+    clearInterval(saveLoadingInterval);
+    saveLoadingInterval = null;
+    var overlay = document.getElementById('saveLoadingOverlay');
+    document.getElementById('saveLoadingPercent').textContent = '100%';
+    setTimeout(function(){ overlay.style.display = 'none'; }, 250);
   }
 
   function simpanStruk(){
@@ -1242,6 +1321,8 @@
       id: editingId || null,
       namaPelanggan: document.getElementById('inpPelanggan').value.trim(),
       metodeBayar: metode,
+      tanggalISO: document.getElementById('inpTanggal').value || todayISO(),
+      waktu: document.getElementById('inpWaktu').value || nowTimeHHMM(),
       items: currentItems.map(function(it){ return { id: it.id, nama: it.nama, qty: it.qty, harga: it.harga }; }),
       diskon: t.diskon,
       ppn: t.ppn,
@@ -1257,6 +1338,7 @@
     var originalLabel = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
+    showSaveLoading();
 
     saveReceiptRecord(payload).then(function(record){
       var idx = state.receipts.findIndex(function(r){ return r.id === record.id; });
@@ -1268,9 +1350,11 @@
       document.getElementById('previewStatus').textContent = isEdit
         ? ('✓ Perubahan pada ' + record.nomor + ' disimpan')
         : ('✓ Struk ' + record.nomor + ' tersimpan');
+      hideSaveLoading();
       finishSave(record);
       showToast(isEdit ? 'Perubahan struk disimpan' : 'Struk tersimpan');
     }).catch(function(err){
+      hideSaveLoading();
       showToast('Gagal menyimpan struk (' + (err.message || err) + ')', true);
       btn.disabled = false;
       btn.textContent = originalLabel;
@@ -1311,6 +1395,8 @@
     currentItems = r.items.map(function(it){ return { id: it.id || uid(), nama: it.nama, qty: it.qty, harga: it.harga }; });
     document.getElementById('inpPelanggan').value = r.namaPelanggan || '';
     document.getElementById('inpMetode').value = r.metodeBayar || 'Tunai';
+    document.getElementById('inpTanggal').value = r.tanggal || todayISO();
+    document.getElementById('inpWaktu').value = String(r.waktu || nowTimeHHMM()).replace('.', ':');
     document.getElementById('inpDiskon').value = r.diskon || 0;
     document.getElementById('chkPph').checked = !!r.pph;
     document.getElementById('inpPph').value = r.pph || 0;
@@ -1531,6 +1617,17 @@
     document.getElementById('setFooter').value = state.settings.footer || '';
     document.getElementById('setLebarKertas').value = state.settings.lebarKertas || '58mm';
     document.getElementById('brandTitle').textContent = state.settings.namaToko || 'Kasir Struk';
+    var logoPreview = document.getElementById('logoPreview');
+    var btnHapusLogo = document.getElementById('btnHapusLogo');
+    if(state.settings.logoDataUrl){
+      logoPreview.src = state.settings.logoDataUrl;
+      logoPreview.style.display = '';
+      btnHapusLogo.style.display = '';
+    } else {
+      logoPreview.src = '';
+      logoPreview.style.display = 'none';
+      btnHapusLogo.style.display = 'none';
+    }
     var cardAkun = document.getElementById('cardAkun');
     if(currentUser && sheetsEnabled()){
       cardAkun.style.display = '';
@@ -1538,6 +1635,77 @@
     } else {
       cardAkun.style.display = 'none';
     }
+  }
+  function resizeImageFile(file, maxDim){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          var w = Math.max(1, Math.round(img.width * scale));
+          var h = Math.max(1, Math.round(img.height * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          // Ubah jadi grayscale - printer struk cetak satu warna (hitam) saja,
+          // jadi logo berwarna tidak ada gunanya dan lebih baik disamakan dari awal.
+          var imgData = ctx.getImageData(0, 0, w, h);
+          var px = imgData.data;
+          for(var i = 0; i < px.length; i += 4){
+            var gray = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+            px[i] = px[i + 1] = px[i + 2] = gray;
+          }
+          ctx.putImageData(imgData, 0, 0);
+          var pngUrl = canvas.toDataURL('image/png');
+          if(pngUrl.length <= 34000){
+            resolve(pngUrl);
+          } else {
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          }
+        };
+        img.onerror = function(){ reject(new Error('Gagal membaca gambar')); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function(){ reject(new Error('Gagal membaca file')); };
+      reader.readAsDataURL(file);
+    });
+  }
+  function handleLogoUpload(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    if(!file.type || file.type.indexOf('image/') !== 0){
+      showToast('File harus berupa gambar', true);
+      e.target.value = '';
+      return;
+    }
+    resizeImageFile(file, 120).then(function(dataUrl){
+      if(dataUrl.length > 40000){
+        showToast('Logo masih terlalu besar setelah diperkecil. Coba pakai gambar yang lebih sederhana.', true);
+        e.target.value = '';
+        return;
+      }
+      state.settings.logoDataUrl = dataUrl;
+      document.getElementById('logoPreview').src = dataUrl;
+      document.getElementById('logoPreview').style.display = '';
+      document.getElementById('btnHapusLogo').style.display = '';
+      renderLivePreview();
+      showToast('Logo dipasang (otomatis diubah ke grayscale). Klik "Simpan Pengaturan" untuk menyimpan.');
+    }).catch(function(err){
+      showToast('Gagal memproses gambar (' + (err.message || err) + ')', true);
+    });
+  }
+  function hapusLogo(){
+    state.settings.logoDataUrl = '';
+    document.getElementById('logoPreview').src = '';
+    document.getElementById('logoPreview').style.display = 'none';
+    document.getElementById('btnHapusLogo').style.display = 'none';
+    document.getElementById('inputLogo').value = '';
+    renderLivePreview();
+    showToast('Logo dihapus. Klik "Simpan Pengaturan" untuk menyimpan.');
   }
   function simpanNamaAdmin(){
     if(!currentUser || !sheetsEnabled()) return;
@@ -2087,6 +2255,8 @@
     document.getElementById('inpPpn').addEventListener('input', renderLivePreview);
     document.getElementById('inpUangDibayar').addEventListener('input', renderLivePreview);
     document.getElementById('inpPelanggan').addEventListener('input', renderLivePreview);
+    document.getElementById('inpTanggal').addEventListener('change', renderLivePreview);
+    document.getElementById('inpWaktu').addEventListener('change', renderLivePreview);
     document.getElementById('inpCatatan').addEventListener('input', renderLivePreview);
     document.getElementById('inpMetode').addEventListener('change', function(){ toggleUangDibayarField(); renderLivePreview(); });
     document.getElementById('btnSimpanStruk').addEventListener('click', simpanStruk);
@@ -2123,6 +2293,8 @@
 
     document.getElementById('btnSimpanPengaturan').addEventListener('click', simpanPengaturan);
     document.getElementById('btnSimpanNamaAdmin').addEventListener('click', simpanNamaAdmin);
+    document.getElementById('inputLogo').addEventListener('change', handleLogoUpload);
+    document.getElementById('btnHapusLogo').addEventListener('click', hapusLogo);
     document.getElementById('btnUnduhCadangan').addEventListener('click', unduhCadangan);
 
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
