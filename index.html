@@ -1078,8 +1078,12 @@
   function updateItemField(id, field, value){
     var item = currentItems.find(function(it){ return it.id === id; });
     if(!item) return;
-    var num = Number(value);
-    item[field] = isNaN(num) ? 0 : num;
+    if(field === 'nama'){
+      item.nama = value;
+    } else {
+      var num = Number(value);
+      item[field] = isNaN(num) ? 0 : num;
+    }
     var subEl = document.getElementById('sub-' + id);
     if(subEl) subEl.textContent = formatRupiah(item.qty * item.harga);
     renderLivePreview();
@@ -1093,7 +1097,7 @@
     }
     body.innerHTML = currentItems.map(function(it){
       return '<div class="buf-row">' +
-        '<div>' + esc(it.nama) + '</div>' +
+        '<div><input type="text" value="' + esc(it.nama) + '" oninput="App.updateItemField(\'' + it.id + '\',\'nama\',this.value)"></div>' +
         '<div><input type="number" min="0.01" step="0.01" value="' + it.qty + '" oninput="App.updateItemField(\'' + it.id + '\',\'qty\',this.value)"></div>' +
         '<div><input type="number" min="0" step="1" value="' + it.harga + '" oninput="App.updateItemField(\'' + it.id + '\',\'harga\',this.value)"></div>' +
         '<div id="sub-' + it.id + '">' + formatRupiah(it.qty * it.harga) + '</div>' +
